@@ -1,9 +1,11 @@
 module Main exposing (..)
 
 import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
+import Svg exposing (Svg, svg, rect)
+import Svg.Attributes exposing (x, y, width, height, fill)
 
 
+main : Program Never Model Msg
 main =
     Html.beginnerProgram { model = model, view = view, update = update }
 
@@ -13,12 +15,49 @@ main =
 
 
 type alias Model =
-    Int
+    { headPosition : Position }
 
 
 model : Model
 model =
-    0
+    { headPosition =
+        { x = 10
+        , y = 10
+        }
+    }
+
+
+type alias Position =
+    { x : Int
+    , y : Int
+    }
+
+
+pixelsPerUnit : Int
+pixelsPerUnit =
+    15
+
+
+type alias Unit =
+    Int
+
+
+type alias Rectangle =
+    { width : Unit
+    , height : Unit
+    }
+
+
+playArea : Rectangle
+playArea =
+    { width = 21
+    , height = 21
+    }
+
+
+toSvgUnits : Unit -> String
+toSvgUnits units =
+    units * pixelsPerUnit |> toString
 
 
 
@@ -32,12 +71,7 @@ type Msg
 
 update : Msg -> Model -> Model
 update msg model =
-    case msg of
-        Increment ->
-            model + 1
-
-        Decrement ->
-            model - 1
+    model
 
 
 
@@ -47,7 +81,18 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick Decrement ] [ text "-" ]
-        , div [] [ text (toString model) ]
-        , button [ onClick Increment ] [ text "+" ]
+        [ svg [ toSvgUnits playArea.width |> width, toSvgUnits playArea.height |> height ]
+            [ board
+            , head model
+            ]
         ]
+
+
+board : Svg Msg
+board =
+    rect [ toSvgUnits playArea.width |> width, toSvgUnits playArea.height |> height, fill "black" ] []
+
+
+head : Model -> Svg Msg
+head model =
+    rect [ toSvgUnits model.headPosition.x |> x, toSvgUnits model.headPosition.y |> y, toSvgUnits 1 |> width, toSvgUnits 1 |> height, fill "white" ] []
