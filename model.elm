@@ -1,6 +1,6 @@
-module Model exposing (Model, Velocity, toSvgUnits, playArea)
+module Model exposing (Model, Velocity, toSvgUnits, playArea, timePerMove)
 
-import Time exposing (Time)
+import Time exposing (Time, second)
 
 
 type alias Model =
@@ -25,6 +25,11 @@ type alias Velocity =
 pixelsPerUnit : Int
 pixelsPerUnit =
     15
+
+
+timePerMove : Time
+timePerMove =
+    0.125 * second
 
 
 type alias Unit =
