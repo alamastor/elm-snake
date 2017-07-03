@@ -1,77 +1,17 @@
 module Main exposing (..)
 
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, program, button, div, text)
 import Svg exposing (Svg, svg, rect)
 import Svg.Attributes exposing (x, y, width, height, fill)
+import Model exposing (Model, toSvgUnits, playArea)
+import Messages exposing (Msg)
+import Update exposing (update, init)
+import Subscriptions exposing (subscriptions)
 
 
 main : Program Never Model Msg
 main =
-    Html.beginnerProgram { model = model, view = view, update = update }
-
-
-
--- MODEL
-
-
-type alias Model =
-    { headPosition : Position }
-
-
-model : Model
-model =
-    { headPosition =
-        { x = 10
-        , y = 10
-        }
-    }
-
-
-type alias Position =
-    { x : Int
-    , y : Int
-    }
-
-
-pixelsPerUnit : Int
-pixelsPerUnit =
-    15
-
-
-type alias Unit =
-    Int
-
-
-type alias Rectangle =
-    { width : Unit
-    , height : Unit
-    }
-
-
-playArea : Rectangle
-playArea =
-    { width = 21
-    , height = 21
-    }
-
-
-toSvgUnits : Unit -> String
-toSvgUnits units =
-    units * pixelsPerUnit |> toString
-
-
-
--- UPDATE
-
-
-type Msg
-    = Increment
-    | Decrement
-
-
-update : Msg -> Model -> Model
-update msg model =
-    model
+    program { init = init, view = view, update = update, subscriptions = subscriptions }
 
 
 
