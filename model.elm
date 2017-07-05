@@ -1,13 +1,61 @@
-module Model exposing (Model, Velocity, toSvgUnits, playArea, timePerMove)
+module Model
+    exposing
+        ( Model
+        , Position
+        , Velocity
+        , Snake
+        , TailSegment(TailSegment)
+        , Direction(Up, Down, Left, Right)
+        , toSvgUnits
+        , playArea
+        , timePerMove
+        , reverseDirection
+        )
 
 import Time exposing (Time, second)
 
 
 type alias Model =
-    { headPosition : Position
-    , velocity : Velocity
+    { snake : Snake
+    , movement : Direction
     , timeSinceMove : Time
     }
+
+
+type alias Snake =
+    { position : Position
+    , next : Maybe TailSegment
+    }
+
+
+type TailSegment
+    = TailSegment
+        { directionFromParent : Direction
+        , next : Maybe TailSegment
+        }
+
+
+type Direction
+    = Left
+    | Right
+    | Up
+    | Down
+
+
+reverseDirection : Direction -> Direction
+reverseDirection direction =
+    case direction of
+        Left ->
+            Right
+
+        Right ->
+            Left
+
+        Up ->
+            Down
+
+        Down ->
+            Up
 
 
 type alias Position =
