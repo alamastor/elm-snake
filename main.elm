@@ -40,8 +40,8 @@ view model =
             [ toSvgUnits playArea.width |> width
             , toSvgUnits playArea.height |> height
             ]
-            (board
-                :: drawSnake model.snake
+            ([ board, drawDinner model.dinner ]
+                ++ drawSnake model.snake
             )
         ]
 
@@ -91,3 +91,16 @@ drawTail position (TailSegment tailSegment) =
             section thisPosition
     in
         thisSegment :: maybeDrawTail thisPosition tailSegment.next
+
+
+drawDinner : Position -> Svg Msg
+drawDinner position =
+    rect
+        [ toSvgUnits position.x
+            |> x
+        , toSvgUnits position.y |> y
+        , toSvgUnits 1 |> width
+        , toSvgUnits 1 |> height
+        , fill "red"
+        ]
+        []

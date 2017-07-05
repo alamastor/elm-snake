@@ -12,7 +12,8 @@ import Model
         , Position
         , reverseDirection
         )
-import Messages exposing (Msg(NoOp, FrameMsg, KeyMsg))
+import Messages exposing (Msg(NoOp, FrameMsg, KeyMsg, NewDinner))
+import Commands
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -26,6 +27,7 @@ update msg model =
                 ( { snake = (moveSnake model.movement model.snake)
                   , movement = model.movement
                   , timeSinceMove = (model.timeSinceMove + diff + -timePerMove)
+                  , dinner = model.dinner
                   }
                 , Cmd.none
                 )
@@ -50,6 +52,9 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        NewDinner position ->
+            ( { model | dinner = position }, Cmd.none )
 
 
 turnUp : Model -> Model
@@ -130,8 +135,9 @@ init =
     ( { snake = initSnake
       , movement = Up
       , timeSinceMove = 0
+      , dinner = { x = 0, y = 0 }
       }
-    , Cmd.none
+    , Commands.randomDinner
     )
 
 

@@ -19,6 +19,7 @@ type alias Model =
     { snake : Snake
     , movement : Direction
     , timeSinceMove : Time
+    , dinner : Position
     }
 
 
