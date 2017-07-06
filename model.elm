@@ -6,6 +6,7 @@ module Model
         , Snake
         , TailSegment(TailSegment)
         , Direction(Up, Down, Left, Right)
+        , Movement
         , toSvgUnits
         , playArea
         , timePerMove
@@ -17,15 +18,21 @@ import Time exposing (Time, second)
 
 type alias Model =
     { snake : Snake
-    , movement : Direction
-    , timeSinceMove : Time
     , dinner : Position
+    , movement : Movement
     }
 
 
 type alias Snake =
     { position : Position
     , next : Maybe TailSegment
+    }
+
+
+type alias Movement =
+    { direction : Direction
+    , timeSinceMove : Time
+    , turnDone : Bool
     }
 
 

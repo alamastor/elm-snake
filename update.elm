@@ -1,16 +1,18 @@
 module Update exposing (update, init, movePosition)
 
+import Time exposing (Time)
 import Model
     exposing
         ( Model
         , Velocity
+        , Movement
         , Direction(Up, Down, Left, Right)
-        , playArea
-        , timePerMove
         , Snake
         , TailSegment(TailSegment)
         , Position
         , reverseDirection
+        , playArea
+        , timePerMove
         )
 import Messages exposing (Msg(NoOp, FrameMsg, KeyMsg, NewDinner))
 import Commands
@@ -23,32 +25,39 @@ update msg model =
             ( model, Cmd.none )
 
         FrameMsg diff ->
-            if model.timeSinceMove + diff >= timePerMove then
-                ( { snake = (moveSnake model.movement model.snake)
-                  , movement = model.movement
-                  , timeSinceMove = (model.timeSinceMove + diff + -timePerMove)
+            if model.movement.timeSinceMove + diff >= timePerMove then
+                ( { snake = (moveSnake model.movement.direction model.snake)
+                  , movement =
+                        model.movement
+                            |> updateTimeSinceMove
+                                (model.movement.timeSinceMove + diff + -timePerMove)
+                            |> updateTurnDone False
                   , dinner = model.dinner
                   }
                 , Cmd.none
                 )
             else
-                ( { model | timeSinceMove = model.timeSinceMove + diff }
+                ( { model
+                    | movement =
+                        updateTimeSinceMove (model.movement.timeSinceMove + diff)
+                            model.movement
+                  }
                 , Cmd.none
                 )
 
         KeyMsg code ->
             case code of
                 37 ->
-                    ( turnLeft model, Cmd.none )
+                    ( { model | movement = turn Left model.movement }, Cmd.none )
 
                 38 ->
-                    ( turnUp model, Cmd.none )
+                    ( { model | movement = turn Up model.movement }, Cmd.none )
 
                 39 ->
-                    ( turnRight model, Cmd.none )
+                    ( { model | movement = turn Right model.movement }, Cmd.none )
 
                 40 ->
-                    ( turnDown model, Cmd.none )
+                    ( { model | movement = turn Down model.movement }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -57,36 +66,53 @@ update msg model =
             ( { model | dinner = position }, Cmd.none )
 
 
-turnUp : Model -> Model
-turnUp model =
-    if model.movement == Left || model.movement == Right then
-        { model | movement = Up }
+turn : Direction -> Movement -> Movement
+turn direction movement =
+    if turnAllowed direction movement then
+        movement |> updateDirection direction |> updateTurnDone True
     else
-        model
+        movement
 
 
-turnDown : Model -> Model
-turnDown model =
-    if model.movement == Left || model.movement == Right then
-        { model | movement = Down }
+turnAllowed : Direction -> Movement -> Bool
+turnAllowed direction movement =
+    if movement.turnDone then
+        False
     else
-        model
+        case direction of
+            Up ->
+                if movement.direction == Left || movement.direction == Right then
+                    True
+                else
+                    False
+
+            Down ->
+                if movement.direction == Left || movement.direction == Right then
+                    True
+                else
+                    False
+
+            Left ->
+                if movement.direction == Down || movement.direction == Up then
+                    True
+                else
+                    False
+
+            Right ->
+                if movement.direction == Down || movement.direction == Up then
+                    True
+                else
+                    False
 
 
-turnRight : Model -> Model
-turnRight model =
-    if model.movement == Up || model.movement == Down then
-        { model | movement = Right }
-    else
-        model
+updateDirection : Direction -> Movement -> Movement
+updateDirection direction movement =
+    { movement | direction = direction }
 
 
-turnLeft : Model -> Model
-turnLeft model =
-    if model.movement == Up || model.movement == Down then
-        { model | movement = Left }
-    else
-        model
+updateTurnDone : Bool -> Movement -> Movement
+updateTurnDone bool movement =
+    { movement | turnDone = bool }
 
 
 movePosition : Direction -> Position -> Position
@@ -125,16 +151,19 @@ flowDirection direction (TailSegment tailSegment) =
         }
 
 
-resetTimeSinceMove : Model -> Model
-resetTimeSinceMove model =
-    { model | timeSinceMove = 0 }
+updateTimeSinceMove : Time -> Movement -> Movement
+updateTimeSinceMove time movement =
+    { movement | timeSinceMove = time }
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { snake = initSnake
-      , movement = Up
-      , timeSinceMove = 0
+      , movement =
+            { direction = Up
+            , timeSinceMove = 0
+            , turnDone = False
+            }
       , dinner = { x = 0, y = 0 }
       }
     , Commands.randomDinner
