@@ -16,6 +16,7 @@ import Model
         )
 import Messages exposing (Msg(NoOp, FrameMsg, KeyMsg, NewDinner))
 import Commands
+import Debug
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -26,16 +27,7 @@ update msg model =
 
         FrameMsg diff ->
             if model.movement.timeSinceMove + diff >= timePerMove then
-                ( { snake = (moveSnake model.movement.direction model.snake)
-                  , movement =
-                        model.movement
-                            |> updateTimeSinceMove
-                                (model.movement.timeSinceMove + diff + -timePerMove)
-                            |> updateTurnDone False
-                  , dinner = model.dinner
-                  }
-                , Cmd.none
-                )
+                moveUpdate (model.movement.timeSinceMove + diff + -timePerMove) model
             else
                 ( { model
                     | movement =
@@ -64,6 +56,39 @@ update msg model =
 
         NewDinner position ->
             ( { model | dinner = position }, Cmd.none )
+
+
+moveUpdate : Time -> Model -> ( Model, Cmd Msg )
+moveUpdate timeRemainder model =
+    let
+        movedSnake =
+            (moveSnake model.movement.direction model.snake)
+    in
+        if positionsCollide model.dinner movedSnake.position then
+            ( { snake = growSnake model.movement movedSnake
+              , movement =
+                    model.movement
+                        |> updateTimeSinceMove timeRemainder
+                        |> updateTurnDone False
+              , dinner = model.dinner
+              }
+            , Commands.randomDinner
+            )
+        else
+            ( { snake = movedSnake
+              , movement =
+                    model.movement
+                        |> updateTimeSinceMove timeRemainder
+                        |> updateTurnDone False
+              , dinner = model.dinner
+              }
+            , Cmd.none
+            )
+
+
+positionsCollide : Position -> Position -> Bool
+positionsCollide a b =
+    a.x == b.x && a.y == b.y
 
 
 turn : Direction -> Movement -> Movement
@@ -136,6 +161,52 @@ moveSnake direction snake =
     { position = movePosition direction snake.position
     , next = flowDirectionMaybe (reverseDirection direction) snake.next
     }
+
+
+growSnake : Movement -> Snake -> Snake
+growSnake movement snake =
+    case snake.next of
+        Just next ->
+            ({ snake | next = Just (growTail next) })
+
+        Nothing ->
+            { snake
+                | next =
+                    Just
+                        (TailSegment
+                            { directionFromParent = reverseDirection movement.direction
+                            , next = Nothing
+                            }
+                        )
+            }
+
+
+growTail : TailSegment -> TailSegment
+growTail (TailSegment tailSegment) =
+    case tailSegment.next of
+        Just next ->
+            (TailSegment
+                { tailSegment
+                    | next =
+                        Just
+                            (growTail
+                                next
+                            )
+                }
+            )
+
+        Nothing ->
+            (TailSegment
+                { tailSegment
+                    | next =
+                        Just
+                            (TailSegment
+                                { directionFromParent = tailSegment.directionFromParent
+                                , next = Nothing
+                                }
+                            )
+                }
+            )
 
 
 flowDirectionMaybe : Direction -> Maybe TailSegment -> Maybe TailSegment
