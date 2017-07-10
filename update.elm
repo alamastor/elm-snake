@@ -17,7 +17,12 @@ update msg model =
 
         FrameMsg diff ->
             if model.movement.timeSinceMove + diff >= Constants.timePerMove then
-                moveUpdate (model.movement.timeSinceMove + diff + -Constants.timePerMove) model
+                moveUpdate
+                    (model.movement.timeSinceMove
+                        + diff
+                        + -Constants.timePerMove
+                    )
+                    model
             else
                 ( { model
                     | movement =
@@ -133,7 +138,12 @@ updateTurnDone bool movement =
 moveSnake : Direction -> Snake -> Snake
 moveSnake direction snake =
     { position = Position.movePosition direction snake.position
-    , next = flowDirectionMaybe (Position.reverseDirection direction) snake.next
+    , next =
+        flowDirectionMaybe
+            (Position.reverseDirection
+                direction
+            )
+            snake.next
     }
 
 
@@ -148,7 +158,9 @@ growSnake movement snake =
                 | next =
                     Just
                         (TailSegment
-                            { directionFromParent = Position.reverseDirection movement.direction
+                            { directionFromParent =
+                                Position.reverseDirection
+                                    movement.direction
                             , next = Nothing
                             }
                         )
@@ -175,7 +187,8 @@ growTail (TailSegment tailSegment) =
                     | next =
                         Just
                             (TailSegment
-                                { directionFromParent = tailSegment.directionFromParent
+                                { directionFromParent =
+                                    tailSegment.directionFromParent
                                 , next = Nothing
                                 }
                             )
@@ -192,7 +205,11 @@ flowDirection : Direction -> TailSegment -> TailSegment
 flowDirection direction (TailSegment tailSegment) =
     TailSegment
         { directionFromParent = direction
-        , next = (flowDirectionMaybe (tailSegment.directionFromParent) (tailSegment.next))
+        , next =
+            (flowDirectionMaybe
+                (tailSegment.directionFromParent)
+                (tailSegment.next)
+            )
         }
 
 
