@@ -1,7 +1,7 @@
 module Commands exposing (randomDinner)
 
 import Random
-import Model exposing (playArea)
+import Constants exposing (playArea)
 import Messages exposing (Msg(NewDinner))
 
 

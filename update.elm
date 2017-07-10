@@ -1,22 +1,12 @@
-module Update exposing (update, init, movePosition)
+module Update exposing (update)
 
 import Time exposing (Time)
-import Model
-    exposing
-        ( Model
-        , Velocity
-        , Movement
-        , Direction(Up, Down, Left, Right)
-        , Snake
-        , TailSegment(TailSegment)
-        , Position
-        , reverseDirection
-        , playArea
-        , timePerMove
-        )
+import Model exposing (Model)
 import Messages exposing (Msg(NoOp, FrameMsg, KeyMsg, NewDinner))
+import Position exposing (Position, Direction(..))
+import Snake exposing (Snake, TailSegment(TailSegment))
+import Constants exposing (playArea)
 import Commands
-import Debug
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -26,8 +16,8 @@ update msg model =
             ( model, Cmd.none )
 
         FrameMsg diff ->
-            if model.movement.timeSinceMove + diff >= timePerMove then
-                moveUpdate (model.movement.timeSinceMove + diff + -timePerMove) model
+            if model.movement.timeSinceMove + diff >= Constants.timePerMove then
+                moveUpdate (model.movement.timeSinceMove + diff + -Constants.timePerMove) model
             else
                 ( { model
                     | movement =
@@ -91,7 +81,7 @@ positionsCollide a b =
     a.x == b.x && a.y == b.y
 
 
-turn : Direction -> Movement -> Movement
+turn : Direction -> Model.Movement -> Model.Movement
 turn direction movement =
     if turnAllowed direction movement then
         movement |> updateDirection direction |> updateTurnDone True
@@ -99,7 +89,7 @@ turn direction movement =
         movement
 
 
-turnAllowed : Direction -> Movement -> Bool
+turnAllowed : Direction -> Model.Movement -> Bool
 turnAllowed direction movement =
     if movement.turnDone then
         False
@@ -130,40 +120,24 @@ turnAllowed direction movement =
                     False
 
 
-updateDirection : Direction -> Movement -> Movement
+updateDirection : Direction -> Model.Movement -> Model.Movement
 updateDirection direction movement =
     { movement | direction = direction }
 
 
-updateTurnDone : Bool -> Movement -> Movement
+updateTurnDone : Bool -> Model.Movement -> Model.Movement
 updateTurnDone bool movement =
     { movement | turnDone = bool }
 
 
-movePosition : Direction -> Position -> Position
-movePosition direction position =
-    case direction of
-        Up ->
-            { position | y = (position.y - 1) % playArea.height }
-
-        Down ->
-            { position | y = (position.y + 1) % playArea.height }
-
-        Left ->
-            { position | x = (position.x - 1) % playArea.width }
-
-        Right ->
-            { position | x = (position.x + 1) % playArea.width }
-
-
 moveSnake : Direction -> Snake -> Snake
 moveSnake direction snake =
-    { position = movePosition direction snake.position
-    , next = flowDirectionMaybe (reverseDirection direction) snake.next
+    { position = Position.movePosition direction snake.position
+    , next = flowDirectionMaybe (Position.reverseDirection direction) snake.next
     }
 
 
-growSnake : Movement -> Snake -> Snake
+growSnake : Model.Movement -> Snake -> Snake
 growSnake movement snake =
     case snake.next of
         Just next ->
@@ -174,7 +148,7 @@ growSnake movement snake =
                 | next =
                     Just
                         (TailSegment
-                            { directionFromParent = reverseDirection movement.direction
+                            { directionFromParent = Position.reverseDirection movement.direction
                             , next = Nothing
                             }
                         )
@@ -222,39 +196,6 @@ flowDirection direction (TailSegment tailSegment) =
         }
 
 
-updateTimeSinceMove : Time -> Movement -> Movement
+updateTimeSinceMove : Time -> Model.Movement -> Model.Movement
 updateTimeSinceMove time movement =
     { movement | timeSinceMove = time }
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( { snake = initSnake
-      , movement =
-            { direction = Up
-            , timeSinceMove = 0
-            , turnDone = False
-            }
-      , dinner = { x = 0, y = 0 }
-      }
-    , Commands.randomDinner
-    )
-
-
-initSnake : Snake
-initSnake =
-    { position = { x = 10, y = 10 }
-    , next =
-        Just
-            (TailSegment
-                { directionFromParent = Down
-                , next =
-                    Just
-                        (TailSegment
-                            { directionFromParent = Down
-                            , next = Nothing
-                            }
-                        )
-                }
-            )
-    }

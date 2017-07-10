@@ -2,7 +2,7 @@ module Messages exposing (Msg(..))
 
 import Time exposing (Time)
 import Keyboard
-import Model exposing (Position)
+import Position exposing (Position)
 
 
 type Msg
