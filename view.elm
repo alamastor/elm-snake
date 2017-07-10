@@ -22,8 +22,9 @@ view model =
             [ toSvgUnits playArea.width |> width
             , toSvgUnits playArea.height |> height
             ]
-            ([ board, drawDinner model.dinner ]
+            ([ board ]
                 ++ drawSnake model.snake
+                ++ [ drawDinner model.dinner ]
             )
         ]
 
