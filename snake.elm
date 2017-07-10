@@ -1,4 +1,4 @@
-module Snake exposing (Snake, TailSegment(TailSegment), asList)
+module Snake exposing (Snake, TailSegment(TailSegment), toList)
 
 import Position
     exposing
@@ -25,8 +25,8 @@ type TailSegment
         }
 
 
-asList : Snake -> List Position
-asList snake =
+toList : Snake -> List Position
+toList snake =
     snake.position :: (maybeTailList snake.position snake.next)
 
 

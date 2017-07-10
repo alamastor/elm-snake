@@ -4,6 +4,7 @@ module Position
         , Direction(Up, Down, Left, Right)
         , reverseDirection
         , movePosition
+        , positionsCollide
         )
 
 import Constants exposing (playArea)
@@ -52,3 +53,8 @@ movePosition direction position =
 
         Right ->
             { position | x = (position.x + 1) % playArea.width }
+
+
+positionsCollide : Position -> Position -> Bool
+positionsCollide a b =
+    a.x == b.x && a.y == b.y

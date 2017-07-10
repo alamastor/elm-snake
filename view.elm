@@ -56,7 +56,7 @@ section position =
 drawSnake : Snake -> List (Svg Msg)
 drawSnake snake =
     snake
-        |> Snake.asList
+        |> Snake.toList
         |> List.map section
 
 

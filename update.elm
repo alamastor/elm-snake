@@ -7,6 +7,7 @@ import Position exposing (Position, Direction(..))
 import Snake exposing (Snake, TailSegment(TailSegment))
 import Constants exposing (playArea)
 import Commands
+import Init exposing (init)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,7 +60,7 @@ moveUpdate timeRemainder model =
         movedSnake =
             (moveSnake model.movement.direction model.snake)
     in
-        if positionsCollide model.dinner movedSnake.position then
+        if Position.positionsCollide model.dinner movedSnake.position then
             ( { snake = growSnake model.movement movedSnake
               , movement =
                     model.movement
@@ -69,6 +70,8 @@ moveUpdate timeRemainder model =
               }
             , Commands.randomDinner
             )
+        else if collidesWithTail model.snake then
+            init
         else
             ( { snake = movedSnake
               , movement =
@@ -81,9 +84,12 @@ moveUpdate timeRemainder model =
             )
 
 
-positionsCollide : Position -> Position -> Bool
-positionsCollide a b =
-    a.x == b.x && a.y == b.y
+collidesWithTail : Snake -> Bool
+collidesWithTail snake =
+    snake
+        |> Snake.toList
+        |> List.drop 1
+        |> List.any (Position.positionsCollide snake.position)
 
 
 turn : Direction -> Model.Movement -> Model.Movement
